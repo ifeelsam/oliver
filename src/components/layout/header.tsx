@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Bell, Search } from "lucide-react"
-import { ConnectButton } from "@rainbow-me/rainbowkit"
+import { CircleConnectButton } from "@/components/wallet/circle-connect-button"
 
 export function Header() {
     return (
@@ -25,7 +25,7 @@ export function Header() {
                     <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-75" />
                 </span>
             </Button>
-            <ConnectButton showBalance={false} />
+            <CircleConnectButton />
         </header>
     )
 }
