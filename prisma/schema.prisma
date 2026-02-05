@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  walletAddress String    @unique
+  email         String?   
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relationships
+  invoices      Invoice[]
+  payments      Payment[]
+  policies      TreasuryPolicy[]
+  
+  @@index([walletAddress])
+}
+
+model Invoice {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  
+  // Invoice data
+  invoiceNumber     String
+  issuerCompany     String
+  debtorCompany     String
+  debtorAddress     String?
+  totalAmount       BigInt
+  dueDate           DateTime
+  
+  // Document
+  ipfsHash          String    @unique
+  originalFilename  String
+  
+  // Verification
+  verificationStatus String   // pending, verified, rejected
+  riskScore         Int?      // 0-1000
+  aiAnalysis        Json?
+  advanceRate       Int?      // 0-100
+  advanceAmount     BigInt?
+  
+  // NFT
+  tokenId           String?   @unique
+  contractAddress   String?
+  chainId           Int?
+  
+  // Status
+  status            String    // uploaded, verified, funded, repaid, defaulted
+  fundedAt          DateTime?
+  repaidAt          DateTime?
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@index([userId, status])
+  @@index([verificationStatus])
+  @@index([status])
+}
+
+model TreasurySnapshot {
+  id            String    @id @default(cuid())
+  timestamp     DateTime  @default(now())
+  
+  // Aggregate data
+  totalUsdc     BigInt
+  healthScore   Int       // 0-100
+  
+  // Per-chain balances
+  balances      Json      // { ethereum: { usdc: "...", gas: "..." }, ... }
+  
+  // Violations
+  violations    Json      // PolicyViolation[]
+  
+  @@index([timestamp])
+}
+
+model TreasuryPolicy {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  
+  name        String
+  type        String
+  enabled     Boolean   @default(true)
+  parameters  Json
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([userId, enabled])
+}
+
+model AgentDecision {
+  id              String    @id @default(cuid())
+  timestamp       DateTime  @default(now())
+  
+  // Trigger
+  trigger         String    // scheduled, manual, alert, event
+  triggerDetails  Json
+  
+  // Decision
+  agentType       String    // invoice_verification, treasury_management, payment_distribution
+  action          String    // rebalance, defer, approve, reject, etc.
+  reasoning       String
+  confidence      Float
+  
+  // Execution
+  executed        Boolean   @default(false)
+  executedAt      DateTime?
+  executionResult Json?
+  
+  // Cost tracking
+  apiCalls        Int       @default(0)
+  tokensUsed      Int       @default(0)
+  costUsd         Float?
+  
+  @@index([timestamp, agentType])
+  @@index([executed])
+}
+
+model RebalanceExecution {
+  id              String    @id @default(cuid())
+  decisionId      String
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+  
+  // Plan
+  moves           Json      // { from: 'ethereum', to: 'base', amount: '...' }[]
+  
+  // Results
+  status          String    // in_progress, completed, partial_failure, failed
+  transactionHashes Json    // string[]
+  totalGasUsed    BigInt?
+  totalGasUsdCost Float?
+  
+  // Outcome
+  beforeState     Json      // TreasuryState
+  afterState      Json?     // TreasuryState
+  
+  @@index([startedAt])
+  @@index([status])
+}
+
+model Payment {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  
+  // Payment details
+  recipient       String
+  amount          BigInt
+  chain           String
+  
+  // Scheduling
+  scheduledFor    DateTime
+  recurringConfig Json?     // { frequency: 'monthly', endDate: '...' }
+  
+  // Execution
+  status          String    // scheduled, pending, confirmed, failed, cancelled
+  transactionHash String?
+  executedAt      DateTime?
+  gasUsed         BigInt?
+  
+  // Metadata
+  description     String?
+  tags            String[]
+  invoiceId       String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId, status])
+  @@index([scheduledFor, status])
+}
