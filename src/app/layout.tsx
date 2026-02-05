@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: "Autonomous treasury management with RWA-backed invoice financing",
 };
 
+import { Providers } from "@/components/providers";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -18,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

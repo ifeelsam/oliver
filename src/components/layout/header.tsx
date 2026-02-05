@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Bell, Search } from "lucide-react"
+import { ConnectButton } from "@rainbow-me/rainbowkit"
 
 export function Header() {
     return (
@@ -22,9 +23,7 @@ export function Header() {
                 <Bell className="h-5 w-5" />
                 <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
             </Button>
-            <Button variant="outline" size="sm">
-                Connect Wallet
-            </Button>
+            <ConnectButton showBalance={false} />
         </header>
     )
 }
