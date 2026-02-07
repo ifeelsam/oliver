@@ -17,6 +17,8 @@ export function CircleConnectButton() {
         createWallet,
         disconnect,
         needsWalletCreation,
+        isInitialized,
+        initializationError,
     } = useCircleWallet();
 
     // Error state
@@ -96,7 +98,26 @@ export function CircleConnectButton() {
         );
     }
 
+    // Initialization Error state
+    if (initializationError) {
+        return (
+            <Button variant="destructive" size="sm" onClick={() => window.location.reload()}>
+                <AlertCircle className="mr-2 h-4 w-4" />
+                SDK Error
+            </Button>
+        );
+    }
+
     // Initial connect state
+    if (!isInitialized) {
+        return (
+            <Button disabled className="bg-primary/50 relative overflow-hidden">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Initializing SDK...
+            </Button>
+        );
+    }
+
     return (
         <Button
             onClick={connect}

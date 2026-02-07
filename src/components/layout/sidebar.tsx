@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { LayoutDashboard, FileText, PiggyBank, CreditCard, Settings, Wallet, Sparkles } from "lucide-react"
+import { useCircleWallet } from "@/hooks/useCircleWallet"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> { }
 
 export function Sidebar({ className }: SidebarProps) {
     const pathname = usePathname()
+    const { isConnected, address } = useCircleWallet()
 
     const routes = [
         {
@@ -45,7 +47,7 @@ export function Sidebar({ className }: SidebarProps) {
     ]
 
     return (
-        <div className={cn("pb-12 min-h-screen border-r border-border/50 bg-card/50 backdrop-blur-xl", className)}>
+        <div className={cn("pb-12 min-h-screen border-r border-border/50 bg-card/50 backdrop-blur-xl flex flex-col justify-between", className)}>
             <div className="space-y-4 py-6">
                 <div className="px-4 py-2">
                     <div className="flex items-center gap-2 px-4 mb-10">
@@ -58,46 +60,54 @@ export function Sidebar({ className }: SidebarProps) {
                         </h2>
                     </div>
                     <div className="space-y-2">
-                        {routes.map((route) => (
-                            <Button
-                                key={route.href}
-                                variant={route.active ? "secondary" : "ghost"}
-                                className={cn(
-                                    "w-full justify-start transition-all duration-200 group relative overflow-hidden",
-                                    route.active && "bg-primary/10 text-primary hover:bg-primary/15 border border-primary/20"
-                                )}
-                                asChild
-                            >
-                                <Link href={route.href}>
-                                    {route.active && (
-                                        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent" />
+                        {routes.map((route) => {
+                            const Icon = route.icon
+                            return (
+                                <Button
+                                    key={route.href}
+                                    variant={route.active ? "secondary" : "ghost"}
+                                    asChild
+                                    className={cn(
+                                        "w-full justify-start transition-all duration-200 group relative overflow-hidden",
+                                        route.active && "bg-primary/10 text-primary hover:bg-primary/15 border border-primary/20"
                                     )}
-                                    <route.icon className={cn(
-                                        "mr-3 h-4 w-4 transition-transform group-hover:scale-110",
-                                        route.active && "text-primary"
-                                    )} />
-                                    <span className="relative">{route.label}</span>
-                                </Link>
-                            </Button>
-                        ))}
+                                >
+                                    <Link href={route.href}>
+                                        {route.active && (
+                                            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent" />
+                                        )}
+                                        <Icon className={cn(
+                                            "mr-3 h-4 w-4 transition-transform group-hover:scale-110",
+                                            route.active && "text-primary"
+                                        )} />
+                                        <span className="relative">{route.label}</span>
+                                    </Link>
+                                </Button>
+                            )
+                        })}
                     </div>
                 </div>
             </div>
-            <div className="absolute bottom-6 left-4 right-4">
-                <div className="glass-effect flex items-center gap-3 p-3 rounded-xl">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-green-500/30 blur-md rounded-full" />
-                        <div className="bg-green-500/20 p-2 rounded-full relative border border-green-500/30">
-                            <Wallet className="h-4 w-4 text-green-400" />
+
+            {isConnected && address && (
+                <div className="p-4">
+                    <div className="glass-effect flex items-center gap-3 p-3 rounded-xl border border-border/50 bg-card/30">
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-green-500/30 blur-md rounded-full" />
+                            <div className="bg-green-500/20 p-2 rounded-full relative border border-green-500/30">
+                                <Wallet className="h-4 w-4 text-green-400" />
+                            </div>
                         </div>
+                        <div className="flex flex-col flex-1 min-w-0">
+                            <span className="text-xs text-muted-foreground">Connected</span>
+                            <span className="text-sm font-medium truncate w-[120px]">
+                                {address.slice(0, 6)}...{address.slice(-4)}
+                            </span>
+                        </div>
+                        <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                     </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                        <span className="text-xs text-muted-foreground">Connected</span>
-                        <span className="text-sm font-medium truncate">0x1234...AB4B</span>
-                    </div>
-                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                 </div>
-            </div>
+            )}
         </div>
     )
 }

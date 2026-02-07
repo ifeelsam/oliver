@@ -283,6 +283,7 @@ export function useCircleWallet() {
         } catch (err: any) {
             console.error("❌ Connection failed:", err);
             setStatus(err.message || "Connection failed");
+            setLoginError(err.message || "Connection failed");
             setIsConnecting(false);
         }
     }, [deviceId]);
@@ -388,5 +389,6 @@ export function useCircleWallet() {
 
         // Flags
         needsWalletCreation: !!loginResult && wallets.length === 0,
+        initializationError: !sdkReady && status.includes("Failed"),
     };
 }
